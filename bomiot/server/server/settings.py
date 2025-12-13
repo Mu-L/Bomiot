@@ -322,7 +322,8 @@ CORS_ALLOW_HEADERS = (
     'operator',
     'device',
     'app-id',
-    'event-sign'
+    'event-sign',
+    'project'
 )
 
 CORS_EXPOSE_HEADERS = [

@@ -4,11 +4,14 @@ from bomiot.server.core import client, views, handler
 from bomiot.server.function import goods
 from bomiot.server.function import bin
 from bomiot.server.function import stock
+from bomiot.server.function import stock_bin
 from bomiot.server.function import capital
 from bomiot.server.function import supplier
 from bomiot.server.function import customer
 from bomiot.server.function import asn
+from bomiot.server.function import asn_detail
 from bomiot.server.function import dn
+from bomiot.server.function import dn_detail
 from bomiot.server.function import purchase
 from bomiot.server.function import bar
 from bomiot.server.function import fee
@@ -84,6 +87,13 @@ urlpatterns += [
 ]
 
 urlpatterns += [
+    path(r'stock/bin/', stock_bin.StockBinList.as_view({"get": "list"}), name="Get Stock Bin List"),
+    path(r'stock/bin/create/', stock_bin.StockBinCreate.as_view({"post": "create"}), name="Create Stock Bin"),
+    path(r'stock/bin/update/', stock_bin.StockBinUpdate.as_view({"post": "update"}), name="Update Stock Bin"),
+    path(r'stock/bin/delete/', stock_bin.StockBinDelete.as_view({"post": "delete"}), name="Delete Stock Bin")
+]
+
+urlpatterns += [
     path(r'capital/', capital.CapitalList.as_view({"get": "list"}), name="Get Capital List"),
     path(r'capital/create/', capital.CapitalCreate.as_view({"post": "create"}), name="Create Capital"),
     path(r'capital/update/', capital.CapitalUpdate.as_view({"post": "update"}), name="Update Capital"),
@@ -112,10 +122,24 @@ urlpatterns += [
 ]
 
 urlpatterns += [
+    path(r'asn/detail/', asn_detail.ASNDetailList.as_view({"get": "list"}), name="Get ASN Detail"),
+    path(r'asn/detail/create/', asn_detail.ASNDetailCreate.as_view({"post": "create"}), name="Create ASN Detail"),
+    path(r'asn/detail/update/', asn_detail.ASNDetailUpdate.as_view({"post": "update"}), name="Update ASN Detail"),
+    path(r'asn/detail/delete/', asn_detail.ASNDetailDelete.as_view({"post": "delete"}), name="Delete ASN Detail")
+]
+
+urlpatterns += [
     path(r'dn/', dn.DNList.as_view({"get": "list"}), name="Get DN List"),
     path(r'dn/create/', dn.DNCreate.as_view({"post": "create"}), name="Create DN"),
     path(r'dn/update/', dn.DNUpdate.as_view({"post": "update"}), name="Update DN"),
     path(r'dn/delete/', dn.DNDelete.as_view({"post": "delete"}), name="Delete DN")
+]
+
+urlpatterns += [
+    path(r'dn/detail/', dn_detail.DNDetailList.as_view({"get": "list"}), name="Get DN Detail"),
+    path(r'dn/detail/create/', dn_detail.DNDetailCreate.as_view({"post": "create"}), name="Create DN Detail"),
+    path(r'dn/detail/update/', dn_detail.DNDetailUpdate.as_view({"post": "update"}), name="Update DN Detail"),
+    path(r'dn/detail/delete/', dn_detail.DNDetailDelete.as_view({"post": "delete"}), name="Delete DN Detail")
 ]
 
 urlpatterns += [

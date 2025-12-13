@@ -366,7 +366,7 @@ class UserUpload(viewsets.ModelViewSet):
             file_path = join(settings.MEDIA_ROOT, str(self.request.auth.username), file_obj.name)
             bomiot_signals.send(
                 sender=sync_write_file,
-                msg={'models': 'Function'},
+                msg={'models': 'FileSave'},
                 file_path=file_path,
                 file_data=file_data
             )

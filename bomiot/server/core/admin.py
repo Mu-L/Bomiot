@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.dispatch import receiver
 from django.conf import settings
-from bomiot.server.core.utils import receiver_callback, dynamic_import_and_call
+from bomiot.server.core.utils import receiver_callback, dynamic_import_and_call, sync_write_file, receiver_server_callback, receiver_file_callback
 from bomiot.server.core.signal import bomiot_data_signals
 import bomiot_control
 from bomiot.server.core.signal import bomiot_signals
@@ -70,5 +70,36 @@ def data_callback(**kwargs):
     feedback = receiver_callback(kwargs, value)
     return feedback
 
+@receiver(bomiot_signals)
+def file_server_callback(**kwargs):
+    """
+    Signal receiver to handle the received signal
+    """
+    data = kwargs.get('msg')
+    if data.get('models') == 'FileSave':
+        sync_write_file(kwargs.get('file_path'), kwargs.get('file_data'))
+        return
+    elif data.get('models') == 'Pids':
+        receiver_server_callback(data.get('data'), 'pid_get')
+        return
+    elif data.get('models') == 'Network':
+        receiver_server_callback(data.get('data'), 'network_get')
+        return
+    elif data.get('models') == 'Disk':
+        receiver_server_callback(data.get('data'), 'disk_get')
+        return
+    elif data.get('models') == 'Memory':
+        receiver_server_callback(data.get('data'), 'memory_get')
+        return
+    elif data.get('models') == 'CPU':
+        receiver_server_callback(data.get('data'), 'cpu_get')
+        return
+    elif data.get('models') == 'Files':
+        receiver_file_callback(data.get('data'), 'file_get')
+        return
+    else:
+        return
+    return
+
 bomiot_data_signals.connect(data_callback, weak=False)
-bomiot_signals.connect(bomiot_control.server_callback, weak=False)
+bomiot_signals.connect(file_server_callback, weak=False)

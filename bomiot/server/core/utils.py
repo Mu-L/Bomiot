@@ -322,6 +322,66 @@ def receiver_callback(data, method) -> dict:
         elif mode == 'delete':
             return msg_message_return(language, "Success Delete")
                
+def receiver_file_callback(data, method) -> dict:
+    if settings.PROJECT_NAME == 'bomiot':
+        receiver_path = join(settings.BASE_DIR, 'core', 'files.py')
+    else:
+        receiver_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME, 'files.py')
+    receiver_check = check_method_in_file_by_ast(receiver_path, method)
+    if receiver_check[0] is True:
+        spec = importlib.util.spec_from_file_location("files", receiver_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if 'class' in receiver_check[1]:
+            try:
+                target_class = getattr(module, receiver_check[1]['class'])
+                instance = target_class()
+                if hasattr(instance, receiver_check[1]['method']):
+                    result = getattr(instance, receiver_check[1]['method'])(data)
+                    return result
+                else:
+                    print(f"{type(receiver_check[1]).get('class')} class don't have {receiver_check[1]['method']} method")
+            except AttributeError:
+                print(f"class {type(receiver_check[1]).get('class')} can not find {receiver_path}")
+        else:
+            if hasattr(module, receiver_check[1]['method']):
+                result = getattr(module, receiver_check[1]['method'])(data)
+                return result
+            else:
+                print(f"{receiver_path} don't have {receiver_check[1]['method']} method")
+    else:
+        return
+    
+def receiver_server_callback(data, method) -> dict:
+    if settings.PROJECT_NAME == 'bomiot':
+        receiver_path = join(settings.BASE_DIR, 'core', 'server.py')
+    else:
+        receiver_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME, 'server.py')
+    receiver_check = check_method_in_file_by_ast(receiver_path, method)
+    if receiver_check[0] is True:
+        spec = importlib.util.spec_from_file_location("server", receiver_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if 'class' in receiver_check[1]:
+            try:
+                target_class = getattr(module, receiver_check[1]['class'])
+                instance = target_class()
+                if hasattr(instance, receiver_check[1]['method']):
+                    result = getattr(instance, receiver_check[1]['method'])(data)
+                    return result
+                else:
+                    print(f"{type(receiver_check[1]).get('class')} class don't have {receiver_check[1]['method']} method")
+            except AttributeError:
+                print(f"class {type(receiver_check[1]).get('class')} can not find {receiver_path}")
+        else:
+            if hasattr(module, receiver_check[1]['method']):
+                result = getattr(module, receiver_check[1]['method'])(data)
+                return result
+            else:
+                print(f"{receiver_path} don't have {receiver_check[1]['method']} method")
+    else:
+        return
+
 async def async_write_file(file_path, file_data):
     """
     Async write file

@@ -42,7 +42,6 @@ class TeamSerializer(serializers.ModelSerializer):
     """
     name = serializers.CharField(read_only=True, required=False)
     permission = serializers.JSONField(read_only=True, required=False)
-    project = serializers.CharField(read_only=True, required=False)
     is_delete = serializers.BooleanField(read_only=True, required=False)
     created_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')
     updated_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')
@@ -58,7 +57,6 @@ class DepartmentSerializer(serializers.ModelSerializer):
     Department Serializer
     """
     name = serializers.CharField(read_only=True, required=False)
-    project = serializers.CharField(read_only=True, required=False)
     is_delete = serializers.BooleanField(read_only=True, required=False)
     created_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')
     updated_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')
@@ -78,7 +76,6 @@ class FileSerializer(serializers.ModelSerializer):
     size = serializers.IntegerField(read_only=True, required=False)
     owner = serializers.CharField(read_only=True, required=False)
     shared_to = serializers.CharField(read_only=True, required=False)
-    project = serializers.CharField(read_only=True, required=False)
     is_delete = serializers.BooleanField(read_only=True, required=False)
     created_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')
     updated_time = serializers.DateTimeField(read_only=True, required=False, format='%Y-%m-%d %H:%M:%S')

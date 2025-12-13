@@ -176,7 +176,7 @@ class Network(CoreModel):
         ordering = ['-id']
 
 
-class Team(DataCoreModel):
+class Team(CoreModel):
     name = models.CharField(default='', max_length=255, verbose_name="Team Name")
     permission = models.JSONField(default=dict, null=True, verbose_name="Permission")
 
