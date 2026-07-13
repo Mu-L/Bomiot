@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "bomiot"
-version = "1.1.22"
-description = "Powerful EBS Framework & Full-Stack Development Platform"
+version = "1.1.24"
+description = "Ultra Enterprise Application System"
 authors = ["Bomiot <Singosgu@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/Bomiot/Bomiot"
 repository = "https://github.com/Bomiot/Bomiot"
-keywords = ["Bomiot", "bomiot"]
+keywords = ["Bomiot", "bomiot", "GreaterWMS", "greaterwms"]
 include = [
     "LICENSE"
 ]
@@ -26,8 +26,31 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
-bomiot = ">=1.1.1"
+python = ">=3.9,<=3.13"
+django = "~4.2.24"
+django-cors-headers = "~4.4.0"
+pyjwt = ">=2.10.1"
+django-filter = "~24.3"
+djangorestframework-csv = "~3.0.2"
+bomiot-asgi = ">=0.5.20"
+bomiot-message = ">=0.4.5"
+orjson = "~3.10.7"
+djangorestframework = "~3.15.2"
+django-apscheduler = "~0.7.0"
+pandas = "~2.2.3"
+watchdog = "~6.0.0"
+tomlkit = "~0.13.2"
+openpyxl = "~3.1.5"
+psutil = "~7.2.2"
+xlsxwriter = "~3.2.3"
+requests = "~2.32.3"
+uvicorn = {extras = ["standard"], version = "~0.35.0"}
+httptools = "~0.6.4"
+aiofiles = "~24.1.0"
+starlette = "~0.46.2"
+a2wsgi = "~1.10.10"
+fastapi = "~0.115.14"
+flask = "~3.1.1"
 
 [build-system]
 requires = ["poetry-core"]

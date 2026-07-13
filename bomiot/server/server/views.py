@@ -14,8 +14,8 @@ from django.core.cache import cache
 from django.shortcuts import render
 from bomiot.server.core.jwt_auth import create_token, parse_payload
 from bomiot.server.core.models import Permission
-from bomiot_message import login_message_return, others_message_return
-from bomiot.server.server.pkgcheck import url_ignore
+from bomiot.server.core.message import login_message_return, others_message_return
+from bomiot.server.server.pkgcheck import url_ignore, cwd_check, ignore_cwd
 from os.path import join, isdir, exists, isfile
 from os import listdir
 import importlib.util
@@ -54,6 +54,25 @@ class IndexTemplateView(TemplateView):
                     copy_files(project_template, working_template)
                 template_path = join(working_template, 'dist/spa/index.html')
         return [template_path]
+
+async def ProjectList(request):
+    current_path = list(set([p for p in listdir(settings.WORKING_SPACE) if isdir(p)]).difference(set(ignore_cwd())))
+    cur_squared = list(map(lambda data: cwd_check(data), current_path))
+    filtered_current_path = list(filter(lambda y: y is not None, cur_squared))
+    project_list = []
+    res_project_list = []
+    if len(filtered_current_path) > 0:
+        for module_name in filtered_current_path:
+            app_mode_config = ConfigParser()
+            app_mode_config.read(join(settings.WORKING_SPACE, module_name, 'bomiotconf.ini'), encoding='utf-8')
+            app_mode = app_mode_config.get('mode', 'name')
+            if app_mode == 'project':
+                project_list.append(module_name)
+            else:
+                continue
+    for i in project_list:
+        res_project_list.append({'label': others_message_return(request.META.get('HTTP_LANGUAGE', ''), str(i)), 'value': i })
+    return JsonResponse({'list': res_project_list})
 
 
 def logins(request):
@@ -108,14 +127,10 @@ async def check_token(request):
 
 
 async def mdurl(request, mddocs):
-    project_name = request.COOKIES.get('project', settings.PROJECT_NAME)
     language = request.META.get('HTTP_LANUAGE', '')
     if not mddocs.endswith('.md'):
         return JsonResponse({'detail': others_message_return(language, 'Only support markdown file')})
-    if project_name.lower() == 'bomiot':
-        folder_path = Path(settings.MEDIA_ROOT)
-    else:
-        folder_path = Path(join(settings.WORKING_SPACE, project_name, 'media'))
+    folder_path = Path(join(settings.WORKING_SPACE, 'greaterwms', 'media'))
     all_files = [f.name for f in folder_path.iterdir() if f.is_file()]
     start_words = mddocs.split('.')
     md_check_list_all = []

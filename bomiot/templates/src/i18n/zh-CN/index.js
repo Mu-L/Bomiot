@@ -10,6 +10,7 @@ export default {
   expireNotice: `授权Key将在{days}天内到期，请使用'bomiot keys'重新获取授权key`,
   expired: "授权Key已过期，请使用'bomiot keys'重新获取授权key",
   gohome: '回到首页',
+  project: '项目',
   cancel: '取消',
   submit: '提交',
   login: '登入',

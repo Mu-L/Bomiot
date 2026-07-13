@@ -33,6 +33,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('', views.IndexTemplateView.as_view()),
     path('test/', views.test),
+    path('projectlist/', views.ProjectList),
     path('login/', views.logins, name='login'),
     path('logout/', views.logouts, name='logout'),
     path('checktoken/', views.check_token, name='check_token'),
@@ -85,20 +86,7 @@ if len(filtered_current_path) > 0:
         app_mode_config = ConfigParser()
         app_mode_config.read(join(settings.WORKING_SPACE, module_name, 'bomiotconf.ini'), encoding='utf-8')
         app_mode = app_mode_config.get('mode', 'name')
-        if app_mode == 'plugins':
-            try:
-                spec = importlib.util.find_spec(f'{module_name}.urls')
-                if spec is None:
-                    continue
-                urls_module = importlib.import_module(f'{module_name}.urls')
-                if not hasattr(urls_module, 'urlpatterns'):
-                    continue
-                urlpatterns += [
-                    path(f'{module_name}/', include(f'{module_name}.urls'))
-                ]
-            except Exception as e:
-                continue
-        elif app_mode == 'project':
+        if app_mode == 'project':
             if module_name == settings.PROJECT_NAME:
                 project_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME)
                 root_path = Path(project_path)

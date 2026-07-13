@@ -8,7 +8,7 @@ from os.path import join
 import importlib.util
 import importlib
 from pathlib import Path
-from bomiot_message import msg_message_return
+from bomiot.server.core.message import msg_message_return
 import os
 import shutil
 import filecmp
@@ -281,11 +281,7 @@ def check_method_in_file_by_ast(file_path, method_name):
         return False, detail
 
 def receiver_callback(data, method) -> dict:
-    project_name = data.get('request').COOKIES.get('project', settings.PROJECT_NAME)
-    if project_name.lower() == 'bomiot':
-        receiver_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME, 'receiver.py')
-    else:
-        receiver_path = join(settings.WORKING_SPACE, project_name, 'receiver.py')
+    receiver_path = join(settings.WORKING_SPACE, 'greaterwms', 'receiver.py')
     receiver_check = check_method_in_file_by_ast(receiver_path, method)
     if receiver_check[0] is True:
         spec = importlib.util.spec_from_file_location("receiver", receiver_path)
@@ -323,10 +319,7 @@ def receiver_callback(data, method) -> dict:
             return msg_message_return(language, "Success Delete")
                
 def receiver_file_callback(data, method) -> dict:
-    if settings.PROJECT_NAME == 'bomiot':
-        receiver_path = join(settings.BASE_DIR, 'core', 'files.py')
-    else:
-        receiver_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME, 'files.py')
+    receiver_path = join(settings.WORKING_SPACE, 'greaterwms', 'files.py')
     receiver_check = check_method_in_file_by_ast(receiver_path, method)
     if receiver_check[0] is True:
         spec = importlib.util.spec_from_file_location("files", receiver_path)
@@ -353,10 +346,7 @@ def receiver_file_callback(data, method) -> dict:
         return
     
 def receiver_server_callback(data, method) -> dict:
-    if settings.PROJECT_NAME == 'bomiot':
-        receiver_path = join(settings.BASE_DIR, 'core', 'server.py')
-    else:
-        receiver_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME, 'server.py')
+    receiver_path = join(settings.WORKING_SPACE, 'greaterwms', 'server.py')
     receiver_check = check_method_in_file_by_ast(receiver_path, method)
     if receiver_check[0] is True:
         spec = importlib.util.spec_from_file_location("server", receiver_path)

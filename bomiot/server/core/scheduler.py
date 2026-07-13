@@ -124,5 +124,5 @@ class SchedulerManager(Thread):
         print("Scheduler manager stopped")
 
 
-# init scheduler manager
-sm = SchedulerManager(scheduler)
+# Global scheduler manager instance (initialized lazily)
+sm = None

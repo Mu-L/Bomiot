@@ -14,16 +14,31 @@
             {{ appNameStore.appName }} Team©
         </q-toolbar-title>
         <q-space />
-        <q-btn dense flat round icon='reply_all' style="margin-right: 10px" @click="projectStore.projectChange('bomiot')">
-          <q-tooltip class="bg-indigo" :offset="[15, 15]" content-style="font-size: 12px">
-            Bomiot
-          </q-tooltip>
-        </q-btn>
-        <!-- <q-btn dense flat round icon='reply' style="margin-right: 10px" @click="projectStore.projectChange('greaterwms')">
-          <q-tooltip class="bg-indigo" :offset="[15, 15]" content-style="font-size: 12px">
-            Greaterwms
-          </q-tooltip>
-        </q-btn> -->
+        <div>
+          <q-select
+            v-model="projectData"
+            :options="projectOptions"
+            stack-label
+            borderless
+            dark
+            @update:model-value="projectChange($event)"
+            >
+            <template v-slot:selected>
+              {{ $t('project') }}
+              <q-chip
+                v-if="projectData"
+                dense
+                square
+                color="white"
+                text-color="primary"
+                class="q-my-none q-ml-xs q-mr-none"
+              >
+                {{ projectData.label }}
+              </q-chip>
+              <q-badge v-else>*none*</q-badge>
+            </template>
+          </q-select>
+        </div>
         <q-btn dense flat round style="margin-right: 10px" @click="openLink('https://space.bilibili.com/407321291')">
           <img src="/statics/icons/bilibili.svg" style="width: 25px" :alt="appNameStore.appName + ' Bilibili'"/>
           <q-tooltip class="bg-indigo" :offset="[15, 15]" content-style="font-size: 12px">
@@ -110,7 +125,7 @@
 
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, toRaw } from 'vue'
 import { useAppNameStore } from 'stores/appName'
 import { userightDrawerStore } from "stores/rightDrawer"
 import { useleftDrawerStore } from "stores/leftDrawer"
@@ -120,7 +135,7 @@ import { useProjectStore } from 'stores/project'
 import { useI18n } from "vue-i18n"
 import { useQuasar, openURL } from "quasar"
 import { useRouter } from 'vue-router'
-import { post } from 'boot/axios'
+import { get, post } from 'boot/axios'
 import DarkMode from 'components/dark/DarkMode.vue'
 import LangChoice from 'components/lang/LangChoice.vue'
 import TabList from 'components/TabList.vue'
@@ -143,6 +158,10 @@ const loginData = ref({
   username: '',
   password: ''
 })
+
+const projectData = ref({
+})
+const projectOptions = ref([])
 
 function cancelLogin () {
   loginData.value = {
@@ -181,10 +200,39 @@ function logOuts () {
 function openLink (e) {
   openURL(e)
 }
+function projectChange (e) {
+  let rawData = toRaw(e)
+  projectStore.projectChange(rawData.value)
+}
+
+async function getProjectList() {
+  await get({
+    url: 'projectlist/',
+    params: {
+    }
+  })
+    .then((res) => {
+      projectOptions.value = res.list
+      projectCheck()
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+  }
+
+function projectCheck() {
+  for(let item of projectOptions.value){
+    if (item.value === projectStore.projectDataGet) {
+      projectData.value = item
+    }
+  }
+}
+
 
 onMounted(() => {
   tokenStore.tokenCheck()
   listenToEvent()
+  getProjectList()
 })
 
 onBeforeUnmount(() => {

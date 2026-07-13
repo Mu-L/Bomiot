@@ -8,56 +8,76 @@ from .init import create_file
 import importlib.metadata
 from configparser import ConfigParser
 from .copyfile import copy_files
+import logging
 
 
 def project(folder: str):
     """
     project workspace
-    :param folder:
-    :return:
+    :param folder: Project folder name
+    :return: None
     """
     if len(sys.argv) < 3:
         print('Please enter your project name')
-    else:
-        project_path = join(getcwd(), sys.argv[2])
-        if exists(project_path):
+        return
+    
+    project_name = sys.argv[2]
+    
+    # Check if project name is reserved
+    if project_name.lower() == 'greaterwms':
+        print('Project name "greaterwms" is reserved and cannot be used')
+        return
+    
+    project_path = join(getcwd(), project_name)
+    
+    if exists(project_path):
+        print('Project directory already exists')
+        return
+    
+    # Check if project name conflicts with installed packages
+    try:
+        installed_packages = [dist.metadata['Name'] for dist in importlib.metadata.distributions()]
+        if project_name in installed_packages:
             print('Project directory already exists')
-        else:
-            if sys.argv[2] in [dist.metadata['Name'] for dist in importlib.metadata.distributions()]:
-                print('Project directory already exists')
+            return
+    except Exception as e:
+        logging.warning(f"Could not check installed packages: {e}")
+    
+    try:
+        makedirs(project_path, exist_ok=True)
+        current_path = Path(__file__).resolve()
+        file_path = join(current_path.parent, 'file')
+
+        # Write init file
+        init_file_path = join(project_path, '__init__.py')
+        with open(init_file_path, "w", encoding='utf-8') as f:
+            pass
+
+        # Copy essential files
+        essential_files = [
+            'bomiotconf.ini'
+        ]
+        
+        for file_name in essential_files:
+            src_path = join(file_path, file_name)
+            dst_path = join(project_path, file_name)
+            
+            if exists(src_path):
+                shutil.copy2(src_path, dst_path)
             else:
-                makedirs(project_path)
-                current_path = Path(__file__).resolve()
-                file_path = join(current_path.parent, 'file')
+                logging.warning(f"Essential file not found: {src_path}")
 
-                shutil.copy2(join(file_path, '__version__.py'), project_path)
+        # Create additional files via create_file function
+        create_file(str(project_name))
 
-                with open(join(project_path, '__init__.py'), "w") as f:
-                    f.write("def version():\n")
-                    f.write(f"    from {sys.argv[2]} import __version__\n")
-                    f.write("    return __version__.version()\n")
-                f.close()
+        # Copy additional directories
+        copy_files(join(current_path.parent.parent, 'templates'), join(project_path, 'templates'))
 
-                shutil.copy2(join(file_path, 'bomiotconf.ini'), project_path)
-                shutil.copy2(join(file_path, 'receiver.py'), project_path)
-                shutil.copy2(join(file_path, 'example.py'), project_path)
-                shutil.copy2(join(file_path, 'api.py'), project_path)
-
-                create_file(str(sys.argv[2]))
-
-                setup_ini_path = join(getcwd(), 'setup.ini')
-                if not exists(setup_ini_path):
-                    shutil.copy2(join(file_path, 'setup.ini'), setup_ini_path)
-                setup_config = ConfigParser()
-                setup_config.read(setup_ini_path, encoding='utf-8')
-                project_name = setup_config.get('project', 'name', fallback='bomiot')
-                if project_name.lower() == 'bomiot':
-                    setup_config.set('project', 'name', folder)
-                with open(setup_ini_path, "wt", encoding='utf-8') as f:
-                    setup_config.write(f)
-
-                copy_files(join(join(current_path.parent.parent, 'server'), 'media'), join(project_path, 'media'))
-                copy_files(join(join(current_path.parent.parent, 'server'), 'language'), join(project_path, 'language'))
-                copy_files(join(current_path.parent.parent, 'templates'), join(project_path, 'templates'))
-                
-                print(f'Initialized project workspace {sys.argv[2]}')
+        print(f'Initialized project workspace {project_name}')
+        
+    except OSError as e:
+        print(f"Error creating project directory: {e}")
+        return
+    except Exception as e:
+        print(f"Unexpected error during project initialization: {e}")
+        return

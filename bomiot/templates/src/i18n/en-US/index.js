@@ -10,6 +10,7 @@ export default {
   expireNotice: `The authorization key will expire in {days} days. Please use 'bomiot keys' to retrieve a new authorization key`,
   expired: "The authorization key has expired. Please use 'bomiot keys' to retrieve a new authorization key",
   gohome: 'Go Home',
+  project: 'Project',
   cancel: 'Cancel',
   submit: 'Submit',
   login: 'Login',

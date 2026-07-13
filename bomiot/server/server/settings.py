@@ -280,10 +280,7 @@ else:
     ]
 
 MEDIA_URL = 'media/'
-if PROJECT_NAME == 'bomiot':
-    MEDIA_ROOT = join(BASE_DIR, 'media').replace('\\', '/')
-else:
-    MEDIA_ROOT = join(join(WORKING_SPACE, PROJECT_NAME), 'media').replace('\\', '/')
+MEDIA_ROOT = join(WORKING_SPACE, 'greaterwms', 'media').replace('\\', '/')
 if exists(join(WORKING_SPACE, PROJECT_NAME)):
     exists(MEDIA_ROOT) or os.makedirs(MEDIA_ROOT)
 

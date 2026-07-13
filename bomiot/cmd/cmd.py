@@ -71,23 +71,28 @@ parser.add_argument('-h', '--help', action='help',
 subparsers = parser.add_subparsers(
     dest='command', title='Available commands', metavar='')
 
-# new
-parser_new = subparsers.add_parser(
-    'new', help='Create APP for project')
-parser_new.add_argument('folder', default='',
+# new app
+parser_app = subparsers.add_parser(
+    'app', help='Create APP for project')
+parser_app.add_argument('folder', default='',
                          nargs='?', type=str, help='Create APP')
+# new app
+parser_app = subparsers.add_parser(
+    'api', help='Create Bomiot API for project')
+parser_app.add_argument('folder', default='',
+                         nargs='?', type=str, help='Create API')
 
 # project
 parser_project = subparsers.add_parser(
-    'project', help='Project workspace, default to bomiot')
+    'project', help='Project workspace, default to GreaterWMS')
 parser_project.add_argument('folder', default='',
                          nargs='?', type=str, help='project workspace folder')
 
 # plugins
-parser_plugins = subparsers.add_parser(
-    'plugins', help='Plugins workspace, default to bomiot')
-parser_plugins.add_argument('folder', default='',
-                         nargs='?', type=str, help='plugins workspace folder')
+# parser_plugins = subparsers.add_parser(
+#     'plugins', help='Plugins workspace, default to bomiot')
+# parser_plugins.add_argument('folder', default='',
+#                          nargs='?', type=str, help='plugins workspace folder')
 
 # deploy
 parser_deploy = subparsers.add_parser(
@@ -131,14 +136,14 @@ parser_dumpdata.add_argument(
     'appname', default='core', nargs='?', type=str, help='Appname')
 
 # marketplace
-parser_marketplace = subparsers.add_parser(
-    'market', help='Copy project from marketplace')
-parser_marketplace.add_argument('folder', default='',
-                         nargs='?', type=str, help='project marketplace folder')
+# parser_marketplace = subparsers.add_parser(
+#     'market', help='Copy project from marketplace')
+# parser_marketplace.add_argument('folder', default='',
+#                          nargs='?', type=str, help='project marketplace folder')
 
-# init auth keys
-parser_keys = subparsers.add_parser(
-    'keys', help='Init auth keys')
+# # init auth keys
+# parser_keys = subparsers.add_parser(
+#     'keys', help='Init auth keys')
 
 # run
 parser_run = subparsers.add_parser(
@@ -178,9 +183,9 @@ def cmd():
         from bomiot.cmd.project import project
         project(args.folder)
     # plugins workspace for bomiot
-    elif command == 'plugins':
-        from bomiot.cmd.plugins import plugins
-        plugins(args.folder)
+    # elif command == 'plugins':
+    #     from bomiot.cmd.plugins import plugins
+    #     plugins(args.folder)
     # deploy project
     elif command == 'deploy':
         from bomiot.cmd.deploy import deploy
@@ -198,17 +203,20 @@ def cmd():
         from bomiot.cmd.initpwd import init_password
         init_password()
     # create app
-    elif command == 'new':
+    elif command == 'app':
         from bomiot.cmd.createapp import new_app
         new_app(args.folder)
+    elif command == 'api':
+        from bomiot.cmd.createapi import new_api
+        new_api(args.folder)
     # marketplace
-    elif command == 'market':
-        from bomiot.cmd.market import copy_project
-        copy_project(args.folder)
-    # init auth keys
-    elif command == 'keys':
-        from bomiot.cmd.create_key import auth_key_refresh
-        auth_key_refresh()
+    # elif command == 'market':
+    #     from bomiot.cmd.market import copy_project
+    #     copy_project(args.folder)
+    # # init auth keys
+    # elif command == 'keys':
+    #     from bomiot.cmd.create_key import auth_key_refresh
+    #     auth_key_refresh()
     # makemigrations
     elif command == 'makemigrations':
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bomiot.server.server.settings")

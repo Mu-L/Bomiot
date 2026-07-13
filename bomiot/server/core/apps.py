@@ -23,11 +23,16 @@ class CoreConfig(AppConfig):
                 if os.environ.get('RUN_MAIN', 'false') == 'true':
                     fd = os.open(lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                     from bomiot.server.server.views import init_permission
-                    from bomiot.server.core.scheduler import sm
+                    from bomiot.server.core.scheduler import sm, SchedulerManager, scheduler
                     from bomiot.server.core.observer import ob
                     from bomiot.server.core.server_monitor import start_monitoring
                     from bomiot.server.server.views import init_permission
                     from bomiot.server.core.signal import bomiot_signals, bomiot_data_signals
+                    from bomiot.cmd.welcome import welcome
+                    # Initialize scheduler manager after Django is fully ready
+                    if sm is None:
+                        sm = SchedulerManager(scheduler)
+                    
                     start_monitoring()
                     sm.start()
                     ob.start()
@@ -36,13 +41,7 @@ class CoreConfig(AppConfig):
                     # init_thread = threading.Thread(target=backgrun_init, daemon=True)
                     # init_thread.start()
 
-                    print('')
-                    print("  $$$$$$    $$$$$   $$$       $$$  $$   $$$$$   $$$$$$")
-                    print("  $$   $$  $$   $$  $$ $     $ $$  $$  $$   $$    $$")
-                    print("  $$$$$$$  $$   $$  $$  $   $  $$  $$  $$   $$    $$")
-                    print("  $$   $$  $$   $$  $$   $ $   $$  $$  $$   $$    $$")
-                    print("  $$$$$$    $$$$$   $$    $    $$  $$   $$$$$     $$")
-                    print('')
+                    welcome()
 
             except FileExistsError:
                 pass
