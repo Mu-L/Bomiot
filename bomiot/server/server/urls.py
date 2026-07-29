@@ -39,7 +39,6 @@ urlpatterns = [
     path('logout/', views.logouts, name='logout'),
     path('checktoken/', views.check_token, name='check_token'),
     path('md/<str:mddocs>', views.mdurl, name='markdown'),
-    path('core/', include('bomiot.server.core.urls')),
 ]
 
 urlpatterns += [
@@ -58,46 +57,72 @@ urlpatterns += [
     path('.well-known/appspecific/com.chrome.devtools.json', views.google),
 ]
 
-project_path = join(settings.WORKING_SPACE, 'greaterwms')
-exclude_dirs = {
-    '__pycache__', 'static', 'media', 'templates', 'language',
-    'migrations', 'tests', 'test', 'docs', 'documentation'
-}
+# Third-party / Django core apps that never carry project URLs to mount.
+# Everything else (bomiot.*, greaterwms.*, discovered plugins) is a candidate.
+_SKIP_URL_APPS = frozenset({
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'corsheaders',
+    'django_filters',
+    'rest_framework',
+    'django_apscheduler',
+})
 
-# Collect candidate app directories
-url_candidates = []
-if isdir(project_path):
-    # Development environment: scan filesystem
-    root_path = Path(project_path)
-    url_candidates = [p.name for p in root_path.iterdir() if p.is_dir() and p.name not in exclude_dirs]
-else:
-    # Packaged environment: read from compiled registry
-    try:
-        from greaterwms._apps_registry import APPS
-        url_candidates = [app for app in APPS if app not in exclude_dirs]
-    except ImportError:
-        pass
+# Prefixes of project-local apps we want to auto-mount URLs for.
+# (Matches the INSTALLED_APPS discovery source of truth: BASE bomiot.server.core
+#  + runtime_discover_bomiot_apps discovered greaterwms.* packages.)
+_APP_PREFIXES = ('bomiot.', 'greaterwms.')
 
-# Register URLs for each app
-for app_name in url_candidates:
+_mounted_prefixes = set()
+
+def _register_app_urls(app_path):
+    """Include {app_path}.urls under /<last_segment>/ if the module exists."""
+    if app_path in _SKIP_URL_APPS:
+        return
+    if not app_path.startswith(_APP_PREFIXES):
+        return
+
+    segments = app_path.split('.')
+    if not segments:
+        return
+    url_prefix = segments[-1]
+    if not url_prefix:
+        return
+
+    # Guard against duplicate prefix registration (different apps colliding
+    # on the same last-segment name, or core being added twice).
+    prefix_key = f'{url_prefix}/'
+    if prefix_key in _mounted_prefixes:
+        return
+    _mounted_prefixes.add(prefix_key)
+
+    include_path = f'{app_path}.urls'
     try:
-        include_path = f'greaterwms.{app_name}.urls'
-        # Use importlib to verify module exists (works in both dev and packaged)
         urls_module = importlib.import_module(include_path)
-        if not hasattr(urls_module, 'urlpatterns'):
-            continue
-        url_pattern = f'{app_name}/'
-        if any(pattern.pattern.regex.pattern.startswith(url_pattern) for pattern in urlpatterns):
-            continue
-        urlpatterns.append(
-            path(url_pattern, include(include_path))
-        )
     except ImportError:
-        continue
+        # app has no urls.py — totally normal, skip silently
+        return
     except Exception:
         import traceback
         traceback.print_exc()
-        continue
+        return
+
+    if not hasattr(urls_module, 'urlpatterns'):
+        return
+
+    urlpatterns.append(
+        path(prefix_key, include(include_path))
+    )
+
+# Mirror INSTALLED_APPS exactly: same order, same set of apps.
+# (INSTALLED_APPS already incorporates CI-generated discovered_apps.py,
+#  runtime_discover_bomiot_apps fallback, and _unique_preserve_order de-duplication.)
+for _app in settings.INSTALLED_APPS:
+    _register_app_urls(_app)
 
 if os.environ.get('IS_LAN', 'false') == 'true':
     views.init_bomiot()
