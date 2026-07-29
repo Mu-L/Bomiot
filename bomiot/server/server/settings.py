@@ -46,17 +46,13 @@ except Exception:
 
 def runtime_discover_bomiot_apps(package_name=None, marker="bomiotconf.ini", allow_nested=False):
     """
-    Discover subpackages of `package_name` that contain `marker` file.
-    - Does NOT import the candidate packages (avoids AppRegistry/side-effect issues).
-    - Uses importlib.util.find_spec to get submodule_search_locations and checks files there.
-    - If importlib.resources is available, will try package resource API (best-effort).
-    - allow_nested: if True, also scan common nested dirs like 'apps' or 'plugins' under package.
-    Returns list of package strings like 'greaterwms.foo'.
+    Discover subpackages of `package_name` by checking submodule_search_locations for marker file.
+    This function avoids importing candidate packages to prevent AppRegistry/side-effect issues.
     """
-    discovered = []
     logger = logging.getLogger(__name__)
+    discovered = []
+
     if package_name is None:
-        # fall back to PROJECT_NAME if available in settings module
         try:
             package_name = PROJECT_NAME
         except NameError:
@@ -70,62 +66,36 @@ def runtime_discover_bomiot_apps(package_name=None, marker="bomiotconf.ini", all
 
         base_paths = list(spec.submodule_search_locations)
 
-        # helper to check a candidate package path for marker
-        def _has_marker_on_fs(candidate_spec):
-            # candidate_spec is the spec of candidate (may be None)
-            if not candidate_spec or not getattr(candidate_spec, "submodule_search_locations", None):
-                return False
-            pkg_dir = list(candidate_spec.submodule_search_locations)[0]
-            return os.path.exists(os.path.join(pkg_dir, marker))
-
-        # optionally log if resources API not available
-        if resources is None:
-            logger.debug("importlib.resources not available; falling back to filesystem checks for discovery")
-
-        # iterate immediate submodules under package_name
+        # iterate immediate submodules under package_name (pkgutil does not import)
         for finder, name, ispkg in pkgutil.iter_modules(base_paths):
             candidate = f"{package_name}.{name}"
 
-            # 1) Try resources API without importing package code (best-effort)
-            found = False
-            if resources:
-                try:
-                    # access package by spec path, without importing top-level code
-                    cand_spec = importlib.util.find_spec(candidate)
-                    if cand_spec and getattr(cand_spec, "submodule_search_locations", None):
-                        pkg_path = list(cand_spec.submodule_search_locations)[0]
-                        # resources.files requires actual package import in some cases, so we fallback to fs check next.
-                        # Try to use resources.open_binary where possible (safer).
-                        try:
-                            # This may still import; we guard exceptions below.
-                            with resources.open_binary(candidate, marker):
-                                found = True
-                        except Exception:
-                            # ignore and fallback to fs check
-                            pass
-                except Exception:
-                    logger.debug("resources check failed for %s: %s", candidate, repr(Exception))
+            # single find_spec per candidate
+            cand_spec = importlib.util.find_spec(candidate)
+            if not cand_spec or not getattr(cand_spec, "submodule_search_locations", None):
+                # not a package on filesystem (could be namespace or zipped) -> skip
+                logger.debug("candidate %s has no filesystem location; skipping", candidate)
+                continue
 
-            # 2) filesystem fallback: check candidate's package directory for marker
-            if not found:
-                cand_spec = importlib.util.find_spec(candidate)
-                if _has_marker_on_fs(cand_spec):
-                    found = True
-
-            if found:
+            pkg_dir = list(cand_spec.submodule_search_locations)[0]
+            marker_path = os.path.join(pkg_dir, marker)
+            if os.path.exists(marker_path):
                 discovered.append(candidate)
+                continue
 
-            # optional nested scan: look for candidate/apps/* or candidate/plugins/*
-            if allow_nested and cand_spec and getattr(cand_spec, "submodule_search_locations", None):
-                pkg_dir = list(cand_spec.submodule_search_locations)[0]
+            # optionally scan nested folders 'apps'/'plugins' but using pkgutil when possible
+            if allow_nested:
                 for subfolder in ("apps", "plugins"):
                     nested_base = os.path.join(pkg_dir, subfolder)
                     if os.path.isdir(nested_base):
-                        for entry in sorted(os.listdir(nested_base)):
-                            nested_dir = os.path.join(nested_base, entry)
-                            if os.path.isdir(nested_dir) and os.path.exists(os.path.join(nested_dir, marker)):
-                                discovered.append(f"{candidate}.{subfolder}.{entry}")
-
+                        for ffinder, fname, fispkg in pkgutil.iter_modules([nested_base]):
+                            nested_candidate = f"{candidate}.{subfolder}.{fname}"
+                            # check marker inside that nested package dir
+                            nested_spec = importlib.util.find_spec(nested_candidate)
+                            if nested_spec and getattr(nested_spec, "submodule_search_locations", None):
+                                nested_dir = list(nested_spec.submodule_search_locations)[0]
+                                if os.path.exists(os.path.join(nested_dir, marker)):
+                                    discovered.append(nested_candidate)
     except Exception:
         logger.exception("runtime discovery error; returning partial list")
     return discovered
@@ -157,10 +127,11 @@ BASE_INSTALLED_APPS = [
 
 _seen = set()
 def _unique_preserve_order(seq):
+    seen = set()
     out = []
     for s in seq:
-        if s not in _seen:
-            _seen.add(s)
+        if s not in seen:
+            seen.add(s)
             out.append(s)
     return out
 
