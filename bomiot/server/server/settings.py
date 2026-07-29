@@ -3,6 +3,7 @@ from django.core.management.utils import get_random_secret_key
 import os
 import sys
 import logging
+import pkgutil
 from configparser import ConfigParser
 import importlib.metadata
 import bomiot
@@ -10,6 +11,11 @@ from bomiot.server.server.pkgcheck import pkg_check, cwd_check, ignore_pkg, igno
 import importlib.util
 from os import listdir
 from os.path import join, isdir, exists, isfile
+try:
+    import importlib.resources as resources  # py3.9+
+except Exception:
+    resources = None
+import os
 
 
 BASE_DIR = join(Path(bomiot.__file__).resolve().parent, 'server')
@@ -38,19 +44,53 @@ try:
 except Exception:
     _DISCOVERED_APPS = None
 
-def runtime_discover_bomiot_apps():
-    """
-    Fallback runtime discovery. Put original discovery logic here but ensure
-    it never raises during import and is lightweight.
-    """
+def runtime_discover_bomiot_apps(package_name="greaterwms", marker="bomiotconf.ini"):
+    discovered = []
     try:
-        # Replace the body below with your original discovery logic, but:
-        # - avoid heavy I/O or imports that can fail in packaging context
-        # - always catch exceptions and return []
-        return []
+        spec = importlib.util.find_spec(package_name)
+        if not spec or not getattr(spec, "submodule_search_locations", None):
+            logging.getLogger(__name__).debug("%s not found; skipping runtime discovery", package_name)
+            return discovered
+
+        paths = list(spec.submodule_search_locations)
+        for finder, name, ispkg in pkgutil.iter_modules(paths):
+            candidate = f"{package_name}.{name}"
+            found = False
+
+            # Try package resource API (works for installed packages / wheels)
+            if resources:
+                try:
+                    pkg = importlib.import_module(candidate)
+                    try:
+                        res = resources.files(pkg).joinpath(marker)
+                        if res.is_file():
+                            found = True
+                    except Exception:
+                        try:
+                            with resources.open_binary(candidate, marker):
+                                found = True
+                        except Exception:
+                            pass
+                except Exception:
+                    logging.getLogger(__name__).debug("cannot import %s while checking resources: %s", candidate, sys.exc_info()[1])
+
+            # Fallback to filesystem path
+            if not found:
+                try:
+                    spec_c = importlib.util.find_spec(candidate)
+                    if spec_c and getattr(spec_c, "submodule_search_locations", None):
+                        package_dir = list(spec_c.submodule_search_locations)[0]
+                        if os.path.exists(os.path.join(package_dir, marker)):
+                            found = True
+                except Exception:
+                    logging.getLogger(__name__).debug("filesystem check failed for %s: %s", candidate, sys.exc_info()[1])
+
+            if found:
+                if importlib.util.find_spec(candidate) is not None:
+                    discovered.append(candidate)
     except Exception:
-        logging.getLogger(__name__).exception("runtime discovery failed; returning []")
-        return []
+        logging.getLogger(__name__).exception("runtime discovery error; returning partial list")
+    return discovered
 
 if _DISCOVERED_APPS is None:
     _DISCOVERED_APPS = runtime_discover_bomiot_apps()
