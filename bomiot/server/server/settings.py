@@ -44,52 +44,90 @@ try:
 except Exception:
     _DISCOVERED_APPS = None
 
-def runtime_discover_bomiot_apps(package_name="greaterwms", marker="bomiotconf.ini"):
+def runtime_discover_bomiot_apps(package_name=None, marker="bomiotconf.ini", allow_nested=False):
+    """
+    Discover subpackages of `package_name` that contain `marker` file.
+    - Does NOT import the candidate packages (avoids AppRegistry/side-effect issues).
+    - Uses importlib.util.find_spec to get submodule_search_locations and checks files there.
+    - If importlib.resources is available, will try package resource API (best-effort).
+    - allow_nested: if True, also scan common nested dirs like 'apps' or 'plugins' under package.
+    Returns list of package strings like 'greaterwms.foo'.
+    """
     discovered = []
+    logger = logging.getLogger(__name__)
+    if package_name is None:
+        # fall back to PROJECT_NAME if available in settings module
+        try:
+            package_name = PROJECT_NAME
+        except NameError:
+            package_name = "greaterwms"
+
     try:
         spec = importlib.util.find_spec(package_name)
         if not spec or not getattr(spec, "submodule_search_locations", None):
-            logging.getLogger(__name__).debug("%s not found; skipping runtime discovery", package_name)
+            logger.debug("%s not found or not a package; skipping discovery", package_name)
             return discovered
 
-        paths = list(spec.submodule_search_locations)
-        for finder, name, ispkg in pkgutil.iter_modules(paths):
-            candidate = f"{package_name}.{name}"
-            found = False
+        base_paths = list(spec.submodule_search_locations)
 
-            # Try package resource API (works for installed packages / wheels)
+        # helper to check a candidate package path for marker
+        def _has_marker_on_fs(candidate_spec):
+            # candidate_spec is the spec of candidate (may be None)
+            if not candidate_spec or not getattr(candidate_spec, "submodule_search_locations", None):
+                return False
+            pkg_dir = list(candidate_spec.submodule_search_locations)[0]
+            return os.path.exists(os.path.join(pkg_dir, marker))
+
+        # optionally log if resources API not available
+        if resources is None:
+            logger.debug("importlib.resources not available; falling back to filesystem checks for discovery")
+
+        # iterate immediate submodules under package_name
+        for finder, name, ispkg in pkgutil.iter_modules(base_paths):
+            candidate = f"{package_name}.{name}"
+
+            # 1) Try resources API without importing package code (best-effort)
+            found = False
             if resources:
                 try:
-                    pkg = importlib.import_module(candidate)
-                    try:
-                        res = resources.files(pkg).joinpath(marker)
-                        if res.is_file():
-                            found = True
-                    except Exception:
+                    # access package by spec path, without importing top-level code
+                    cand_spec = importlib.util.find_spec(candidate)
+                    if cand_spec and getattr(cand_spec, "submodule_search_locations", None):
+                        pkg_path = list(cand_spec.submodule_search_locations)[0]
+                        # resources.files requires actual package import in some cases, so we fallback to fs check next.
+                        # Try to use resources.open_binary where possible (safer).
                         try:
+                            # This may still import; we guard exceptions below.
                             with resources.open_binary(candidate, marker):
                                 found = True
                         except Exception:
+                            # ignore and fallback to fs check
                             pass
                 except Exception:
-                    logging.getLogger(__name__).debug("cannot import %s while checking resources: %s", candidate, sys.exc_info()[1])
+                    logger.debug("resources check failed for %s: %s", candidate, repr(Exception))
 
-            # Fallback to filesystem path
+            # 2) filesystem fallback: check candidate's package directory for marker
             if not found:
-                try:
-                    spec_c = importlib.util.find_spec(candidate)
-                    if spec_c and getattr(spec_c, "submodule_search_locations", None):
-                        package_dir = list(spec_c.submodule_search_locations)[0]
-                        if os.path.exists(os.path.join(package_dir, marker)):
-                            found = True
-                except Exception:
-                    logging.getLogger(__name__).debug("filesystem check failed for %s: %s", candidate, sys.exc_info()[1])
+                cand_spec = importlib.util.find_spec(candidate)
+                if _has_marker_on_fs(cand_spec):
+                    found = True
 
             if found:
-                if importlib.util.find_spec(candidate) is not None:
-                    discovered.append(candidate)
+                discovered.append(candidate)
+
+            # optional nested scan: look for candidate/apps/* or candidate/plugins/*
+            if allow_nested and cand_spec and getattr(cand_spec, "submodule_search_locations", None):
+                pkg_dir = list(cand_spec.submodule_search_locations)[0]
+                for subfolder in ("apps", "plugins"):
+                    nested_base = os.path.join(pkg_dir, subfolder)
+                    if os.path.isdir(nested_base):
+                        for entry in sorted(os.listdir(nested_base)):
+                            nested_dir = os.path.join(nested_base, entry)
+                            if os.path.isdir(nested_dir) and os.path.exists(os.path.join(nested_dir, marker)):
+                                discovered.append(f"{candidate}.{subfolder}.{entry}")
+
     except Exception:
-        logging.getLogger(__name__).exception("runtime discovery error; returning partial list")
+        logger.exception("runtime discovery error; returning partial list")
     return discovered
 
 if _DISCOVERED_APPS is None:
@@ -117,7 +155,16 @@ BASE_INSTALLED_APPS = [
     'bomiot.server.core',
 ]
 
-INSTALLED_APPS = BASE_INSTALLED_APPS + list(_DISCOVERED_APPS)
+_seen = set()
+def _unique_preserve_order(seq):
+    out = []
+    for s in seq:
+        if s not in _seen:
+            _seen.add(s)
+            out.append(s)
+    return out
+
+INSTALLED_APPS = _unique_preserve_order(BASE_INSTALLED_APPS + list(_DISCOVERED_APPS))
 
 MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
