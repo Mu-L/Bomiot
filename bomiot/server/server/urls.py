@@ -33,6 +33,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('', views.IndexTemplateView.as_view()),
     path('test/', views.test),
+    path('bomiot_test/', views.bomiot_test),
     path('projectlist/', views.ProjectList),
     path('login/', views.logins, name='login'),
     path('logout/', views.logouts, name='logout'),
@@ -57,67 +58,46 @@ urlpatterns += [
     path('.well-known/appspecific/com.chrome.devtools.json', views.google),
 ]
 
-all_packages = [dist.metadata['Name'] for dist in importlib.metadata.distributions()]
-res_pkg_list = list(set([name.lower() for name in all_packages]).difference(set(ignore_pkg())))
-pkg_squared = list(map(lambda data: pkg_check(data), res_pkg_list))
-filtered_pkg_squared = list(filter(lambda x: x is not None, pkg_squared))
+project_path = join(settings.WORKING_SPACE, 'greaterwms')
+exclude_dirs = {
+    '__pycache__', 'static', 'media', 'templates', 'language',
+    'migrations', 'tests', 'test', 'docs', 'documentation'
+}
 
-current_path = list(set([p for p in listdir(settings.WORKING_SPACE) if isdir(p)]).difference(set(ignore_cwd())))
-cur_squared = list(map(lambda data: cwd_check(data), current_path))
-filtered_current_path = list(filter(lambda y: y is not None, cur_squared))
+# Collect candidate app directories
+url_candidates = []
+if isdir(project_path):
+    # Development environment: scan filesystem
+    root_path = Path(project_path)
+    url_candidates = [p.name for p in root_path.iterdir() if p.is_dir() and p.name not in exclude_dirs]
+else:
+    # Packaged environment: read from compiled registry
+    try:
+        from greaterwms._apps_registry import APPS
+        url_candidates = [app for app in APPS if app not in exclude_dirs]
+    except ImportError:
+        pass
 
-if len(filtered_pkg_squared) > 0:
-    for module in filtered_pkg_squared:
-        try:
-            spec = importlib.util.find_spec(f'{module}.urls')
-            if spec is None:
-                continue
-            urls_module = importlib.import_module(f'{module}.urls')
-            if not hasattr(urls_module, 'urlpatterns'):
-                continue
-            urlpatterns += [
-                path(f'{module}/', include(f'{module}.urls'))
-            ]
-        except Exception as e:
+# Register URLs for each app
+for app_name in url_candidates:
+    try:
+        include_path = f'greaterwms.{app_name}.urls'
+        # Use importlib to verify module exists (works in both dev and packaged)
+        urls_module = importlib.import_module(include_path)
+        if not hasattr(urls_module, 'urlpatterns'):
             continue
-
-if len(filtered_current_path) > 0:
-    for module_name in filtered_current_path:
-        app_mode_config = ConfigParser()
-        app_mode_config.read(join(settings.WORKING_SPACE, module_name, 'bomiotconf.ini'), encoding='utf-8')
-        app_mode = app_mode_config.get('mode', 'name')
-        if app_mode == 'project':
-            if module_name == settings.PROJECT_NAME:
-                project_path = join(settings.WORKING_SPACE, settings.PROJECT_NAME)
-                root_path = Path(project_path)
-                exclude_dirs = {
-                    '__pycache__', 'static', 'media', 'templates', 'language',
-                    'migrations', 'tests', 'test', 'docs', 'documentation'
-                }
-                url_include_list = [p for p in root_path.iterdir() if p.is_dir() and p.name not in exclude_dirs]
-                for url in url_include_list:
-                    app_name = url.name
-                    try:
-                        include_path = f'{module_name}.{app_name}.urls'
-                        spec = importlib.util.find_spec(include_path)
-                        if spec is None:
-                            continue
-                        urls_module = importlib.import_module(include_path)
-                        if not hasattr(urls_module, 'urlpatterns'):
-                            continue
-                        url_pattern = f'{app_name}/'
-                        if any(pattern.pattern.regex.pattern.startswith(url_pattern) for pattern in urlpatterns):
-                            continue
-                        urlpatterns.append(
-                            path(url_pattern, include(include_path))
-                        )
-                    except Exception as e:
-                        import traceback
-                        traceback.print_exc()
-                        continue
+        url_pattern = f'{app_name}/'
+        if any(pattern.pattern.regex.pattern.startswith(url_pattern) for pattern in urlpatterns):
+            continue
+        urlpatterns.append(
+            path(url_pattern, include(include_path))
+        )
+    except ImportError:
+        continue
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        continue
 
 if os.environ.get('IS_LAN', 'false') == 'true':
     views.init_bomiot()
-    start_monitoring()
-    sm.start()
-    ob.start()

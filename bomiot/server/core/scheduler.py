@@ -41,8 +41,6 @@ class SchedulerManager(Thread):
         self._stop_event = False
         register_events(self.scheduler)
         self.daemon = True
-        JobList.objects.filter().delete()
-        self.scheduler.start()
     
     def get_existing_jobs(self):
         try:
@@ -67,9 +65,13 @@ class SchedulerManager(Thread):
                         self.scheduler.remove_job(job_id)
                     except Exception as e:
                         print(f"Error removing job {job_id}: {str(e)}")
-                scheduled_job_ids_res = {job.id for job in self.scheduler.get_jobs()}
-                for job in active_job_ids.difference(scheduled_job_ids_res):
-                    self._update_job(active_jobs.filter(job_id=job).first(), force)
+                if force:
+                    for job in active_jobs:
+                        self._update_job(job, force)
+                else:
+                    scheduled_job_ids_res = {job.id for job in self.scheduler.get_jobs()}
+                    for job in active_job_ids.difference(scheduled_job_ids_res):
+                        self._update_job(active_jobs.filter(job_id=job).first(), force)
                 self.delete_old_job_executions()
             except Exception as e:
                 print(f"Error syncing jobs: {str(e)}")
@@ -102,16 +104,17 @@ class SchedulerManager(Thread):
                 trigger=trigger_type,
                 id=job.job_id,
                 replace_existing=True,
-                kwargs={'sender': job_func, **trigger_args}
+                kwargs={'sender': job_func},
+                **trigger_args
             )
         except Exception as e:
-            job.type = False
-            job.save()
+            print(f"Error updating job {getattr(job, 'job_id', '?')}: {e}")
 
     def run(self):
         try:
+            time.sleep(0.1)
+            self.scheduler.start()
             self.sync_jobs(force=True)
-            # print("Scheduler manager started")
             while not self._stop_event:
                 self.sync_jobs()
                 time.sleep(60)                

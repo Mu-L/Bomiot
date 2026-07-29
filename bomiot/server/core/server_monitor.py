@@ -146,25 +146,40 @@ class ServerManager:
                 continue
         Pids.objects.bulk_create(pid_add_list, batch_size=200)  # Bulk create PIDs to improve performance
 
-
     def monitor_server(self):
         """Monitor server status"""
-        while True:
+        # 等待数据库迁移完成
+        for _ in range(30):
+            try:
+                from django.db import connection
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='bomiot_cpu'")
+                    if cursor.fetchone():
+                        break
+            except Exception:
+                pass
             sleep(1)
-            self.get_cpu_info()
-            sleep(1)
-            self.get_memory_info()
-            sleep(1)
-            self.get_disk_info()
-            sleep(1)
-            self.get_network_info()
-            sleep(1)
-            self.get_pid()
-            sleep(300)  # Perform monitoring every 60 seconds
 
+        while True:
+            try:
+                sleep(1)
+                self.get_cpu_info()
+                sleep(1)
+                self.get_memory_info()
+                sleep(1)
+                self.get_disk_info()
+                sleep(1)
+                self.get_network_info()
+                sleep(1)
+                self.get_pid()
+                sleep(300)
+            except Exception as e:
+                print(f"Monitor error: {e}")
+                sleep(10)
 
 def start_monitoring():
     """Start the server monitoring thread"""
     server_manager = ServerManager()
     monitoring_thread = threading.Thread(target=server_manager.monitor_server, daemon=True)
+    monitoring_thread.daemon = True
     monitoring_thread.start()

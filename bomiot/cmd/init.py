@@ -1,4 +1,4 @@
-from os.path import join, exists
+﻿from os.path import join, exists
 from os import makedirs, getcwd
 import shutil
 from pathlib import Path
@@ -82,6 +82,26 @@ def create_file(folder: str = ''):
                 print(f"{Fore.BLUE}Copied 'greaterwms' folder to project.{Style.RESET_ALL}")
             except Exception as e:
                 logging.error(f"Failed to copy 'greaterwms' folder: {str(e)}")
+
+        # Copy task.py to greaterwms directory
+        task_source = join(file_path, 'task.py')
+        task_dest = join(working_space, 'greaterwms', 'task.py')
+        if exists(task_source) and not exists(task_dest):
+            try:
+                shutil.copy2(task_source, task_dest)
+                print(f"{Fore.BLUE}Copied 'task.py' to greaterwms folder.{Style.RESET_ALL}")
+            except Exception as e:
+                logging.error(f"Failed to copy 'task.py': {str(e)}")
+
+                # Copy the bomiot_test folder if it exists
+            bomiot_test_source = join(file_path, 'bomiot_test')
+            bomiot_test_dest = join(working_space, 'bomiot_test')
+            if exists(bomiot_test_source) and not exists(bomiot_test_dest):
+                try:
+                    shutil.copytree(bomiot_test_source, bomiot_test_dest)
+                    print(f"{Fore.BLUE}Copied 'bomiot_test' folder to project.{Style.RESET_ALL}")
+                except Exception as e:
+                    logging.error(f"Failed to copy 'bomiot_test' folder: {str(e)}")
 
         # Handle setup.ini: copy if it doesn't exist, or check and update if it does
         setup_ini_dest = join(working_space, 'setup.ini')

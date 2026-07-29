@@ -13,13 +13,13 @@ npm-debug.log
 /bomiot/.idea
 /bomiot/logs/
 bomiot/server/logs/
+greaterwms/_apps_registry.py
 db.sqlite3
 install.sh
 notice.*
 *.pyc
-.venv
+.venv/
 /admin
-setup.ini
 asgi.py
 /.history
 auth_key.py

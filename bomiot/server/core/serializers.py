@@ -8,6 +8,8 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(read_only=True, required=False)
     email = serializers.CharField(read_only=True, required=False)
     phone = serializers.CharField(read_only=True, required=False)
+    openid = serializers.CharField(read_only=True, required=False)
+    appid = serializers.CharField(read_only=True, required=False)
     permission = serializers.JSONField(read_only=True, required=False)
     request_limit = serializers.IntegerField(read_only=True, required=False)
     team = serializers.IntegerField(read_only=True, required=False)
@@ -19,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'phone', 'is_active', 'request_limit', 'team', 'department', 'permission', 'date_joined', 'last_login', 'updated_time']
+        fields = ['id', 'username', 'email', 'phone', 'openid', 'appid', 'is_active', 'request_limit', 'team', 'department', 'permission', 'date_joined', 'last_login', 'updated_time']
         read_only_fields = ['id']
 
 

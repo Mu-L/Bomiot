@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from threading import Thread, Timer
 from django.conf import settings
@@ -117,8 +118,6 @@ class MyHandler(FileSystemEventHandler):
             )
 
 observer = Observer()
-event_handler = MyHandler()
-
 
 class ObserverManager(Thread):
     """
@@ -132,15 +131,24 @@ class ObserverManager(Thread):
         """
         super(ObserverManager, self).__init__()
         self.observer = observer
-        self.observer.start()
+        self.daemon = True
+        self._observer_started = False
 
     def run(self):
         """
         heart beat detect
         :return:
         """
-        self.observer.schedule(event_handler, path=settings.MEDIA_ROOT, recursive=True)
-
+        import os
+        media_root = settings.MEDIA_ROOT
+        if not os.path.exists(media_root):
+            os.makedirs(media_root, exist_ok=True)
+        event_handler = MyHandler()
+        self.observer.schedule(event_handler, path=media_root, recursive=True)
+        self.observer.start()
+        self._observer_started = True
+        while True:
+            time.sleep(1)
 
 # init observer manager
 ob = ObserverManager(observer)

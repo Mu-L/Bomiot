@@ -30,6 +30,8 @@ class User(AbstractUser, CoreModel):
     request_limit = models.IntegerField(default=0, verbose_name="Request Limit")
     team = models.IntegerField(default=0, blank=True, verbose_name="Team")
     department = models.IntegerField(default=0, blank=True, verbose_name="Department")
+    openid = models.CharField(default='', max_length=255, blank=True, verbose_name="Openid")
+    appid = models.CharField(default='', max_length=255, blank=True, verbose_name="Appid")
 
     class Meta(AbstractUser.Meta):
         db_table = settings.BASE_DB_TABLE + '_user'

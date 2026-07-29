@@ -30,6 +30,9 @@ User = get_user_model()
 async def test(request):
     return JsonResponse({"msg": "This is Django API"})
 
+async def bomiot_test(request):
+    from bomiot_test import test
+    return JsonResponse({"msg": test.test()})
 
 class IndexTemplateView(TemplateView):
     def get_template_names(self):
@@ -254,7 +257,6 @@ def init_permission():
         print(f"Error initializing permissions: {e}")
 
 def init_bomiot():
-    import socket, webbrowser
     try:
         User.objects.get(username='admin', is_superuser=True)
         print('Admin user already exists, you can use admin to login:')
