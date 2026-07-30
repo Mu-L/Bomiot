@@ -1,22 +1,17 @@
-import importlib.metadata
 import importlib.util
 import os
-from os import listdir
-from os.path import join, isdir, exists, isfile
-from django.contrib import admin
 from django.urls import path, include, re_path
-from django.views.generic.base import TemplateView
 from django.contrib.staticfiles.views import serve
 from django.views.static import serve as static_serve
 from django.conf import settings
 from bomiot.server.server import views
-from bomiot.server.server.pkgcheck import pkg_check, cwd_check, ignore_pkg, ignore_cwd
-from configparser import ConfigParser
-from pathlib import Path
 from django.urls import resolve, Resolver404
 from bomiot.server.core.scheduler import sm
 from bomiot.server.core.observer import ob
 from bomiot.server.core.server_monitor import start_monitoring
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def url_exists(url_data):
@@ -80,7 +75,10 @@ _APP_PREFIXES = ('bomiot.', 'greaterwms.')
 _mounted_prefixes = set()
 
 def _register_app_urls(app_path):
-    """Include {app_path}.urls under /<last_segment>/ if the module exists."""
+    """Include {app_path}.urls under /<last_segment>/ if the module exists.
+    Uses find_spec to avoid importing the module at discovery time.
+    Guards include(...) because include will import the module and may raise.
+    """
     if app_path in _SKIP_URL_APPS:
         return
     if not app_path.startswith(_APP_PREFIXES):
@@ -93,34 +91,30 @@ def _register_app_urls(app_path):
     if not url_prefix:
         return
 
-    # Guard against duplicate prefix registration (different apps colliding
-    # on the same last-segment name, or core being added twice).
+    # Guard against duplicate prefix registration
     prefix_key = f'{url_prefix}/'
     if prefix_key in _mounted_prefixes:
         return
-    _mounted_prefixes.add(prefix_key)
 
     include_path = f'{app_path}.urls'
+
+    # Existence check WITHOUT importing module (avoid executing top-level code)
+    spec = importlib.util.find_spec(include_path)
+    if spec is None:
+        logger.debug("URLs module not resolvable for %s, skipping include", include_path)
+        return
+
+    # Now attempt to include (this may import the module); guard with try/except
     try:
-        urls_module = importlib.import_module(include_path)
-    except ImportError:
-        # app has no urls.py — totally normal, skip silently
-        return
+        urlpatterns.append(path(prefix_key, include(include_path)))
+        # record mounted prefix only after successful include
+        _mounted_prefixes.add(prefix_key)
+        logger.debug("Included URLs for %s at prefix %s", include_path, prefix_key)
     except Exception:
-        import traceback
-        traceback.print_exc()
-        return
-
-    if not hasattr(urls_module, 'urlpatterns'):
-        return
-
-    urlpatterns.append(
-        path(prefix_key, include(include_path))
-    )
+        logger.exception("Failed to include URLs for %s — skipping this app", include_path)
+        # don't re-raise; continue with other apps
 
 # Mirror INSTALLED_APPS exactly: same order, same set of apps.
-# (INSTALLED_APPS already incorporates CI-generated discovered_apps.py,
-#  runtime_discover_bomiot_apps fallback, and _unique_preserve_order de-duplication.)
 for _app in settings.INSTALLED_APPS:
     _register_app_urls(_app)
 
