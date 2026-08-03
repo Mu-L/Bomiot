@@ -6,6 +6,7 @@ import os
 from os.path import join, exists
 from time import sleep
 import threading
+from configparser import ConfigParser, NoOptionError, NoSectionError
 
 class CoreConfig(AppConfig):
     """
@@ -34,18 +35,35 @@ class CoreConfig(AppConfig):
                     try:
                         JobList.objects.all().delete()
                     except Exception as e:
-                        print(f"Error clearing JobList on startup: {e}")
-                    if scheduler_module.sm is None:
-                        scheduler_module.sm = SchedulerManager(scheduler)
-                    if not scheduler_module.sm.is_alive():
-                        scheduler_module.sm.start()
-                    start_monitoring()
-                    if not ob.is_alive():
-                        ob.start()
-                    # def backgrun_init():
-                    #     init_permission()
-                    # init_thread = threading.Thread(target=backgrun_init, daemon=True)
-                    # init_thread.start()
+                        pass
+
+                    # Load system_control switches from WORKING_SPACE/setup.ini
+                    _sys_ctrl_cfg = ConfigParser()
+                    _sys_ctrl_cfg_path = join(settings.WORKING_SPACE, 'setup.ini')
+                    _scheduler_enabled = True
+                    _observer_enabled = True
+                    _server_monitor_enabled = True
+                    if exists(_sys_ctrl_cfg_path):
+                        _sys_ctrl_cfg.read(_sys_ctrl_cfg_path, encoding='utf-8')
+                        try:
+                            _scheduler_enabled = _sys_ctrl_cfg.getboolean('system_control', 'scheduler', fallback=True)
+                            _observer_enabled = _sys_ctrl_cfg.getboolean('system_control', 'observer', fallback=True)
+                            _server_monitor_enabled = _sys_ctrl_cfg.getboolean('system_control', 'server_monitor', fallback=True)
+                        except (NoSectionError, NoOptionError, ValueError):
+                            pass
+
+                    if _scheduler_enabled:
+                        if scheduler_module.sm is None:
+                            scheduler_module.sm = SchedulerManager(scheduler)
+                        if not scheduler_module.sm.is_alive():
+                            scheduler_module.sm.start()
+
+                    if _server_monitor_enabled:
+                        start_monitoring()
+
+                    if _observer_enabled:
+                        if not ob.is_alive():
+                            ob.start()
 
                     welcome()
 

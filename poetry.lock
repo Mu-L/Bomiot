@@ -160,26 +160,26 @@ files = [
 
 [[package]]
 name = "bomiot-token"
-version = "0.7.4"
+version = "0.7.6"
 description = "Bomiot Token validation"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "bomiot_token-0.7.4-cp310-cp310-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:35bdc313a882a9a07589dbe7c67c3ba63ff9032313e319ece215229446954545"},
-    {file = "bomiot_token-0.7.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:65b7d3a8301723b231654b05e93a58e82962aacb758190060ee20a5e46c4d7c1"},
-    {file = "bomiot_token-0.7.4-cp310-cp310-win_amd64.whl", hash = "sha256:9afba218a41a0f8ebacab7d5bcf958221772d50934607d443cbecae4f8cd95f6"},
-    {file = "bomiot_token-0.7.4-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:2293417e8a23ef6211543cbfc3fab8326f6991cbec8ae4ab715f143a09a1d9b9"},
-    {file = "bomiot_token-0.7.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5dbcff230622eb6ead559625eca6565fcca9ec43526943c53b5fd5dc134261c4"},
-    {file = "bomiot_token-0.7.4-cp311-cp311-win_amd64.whl", hash = "sha256:b302f4bf487b3639ac6cff0496d8737d93e79ad5a230c6255b3b228ffb173d8d"},
-    {file = "bomiot_token-0.7.4-cp312-cp312-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:c658683f49b9468fee312dcd6e7a0008e4b5727888ac507bd06fe45c1d02f450"},
-    {file = "bomiot_token-0.7.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:77fe0b2c616b57e072a400985a219397e1f200684e07a19109470c222bff7638"},
-    {file = "bomiot_token-0.7.4-cp312-cp312-win_amd64.whl", hash = "sha256:1e48ddd82ab0d3ec6f7142d6c9e9e09d6c4787e83d922381b440328ed08b8fda"},
-    {file = "bomiot_token-0.7.4-cp313-cp313-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:bd40a36041e75fd1f0506e3f38d095c4462c8f897e5bf9cd17ae7799669ed4f1"},
-    {file = "bomiot_token-0.7.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a05b663661602d3f427b7e11ad35bd8c505157184db7c3ffeeb95e7d47d6e573"},
-    {file = "bomiot_token-0.7.4-cp313-cp313-win_amd64.whl", hash = "sha256:4e4cfe489f09502b7b85a3b60682c1f09587bda92e3801e4e2bb9d8d5f3df8e8"},
-    {file = "bomiot_token-0.7.4-cp39-cp39-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:9744f0b0dee729f1b8ea2c7365db0d05d60fd897bb3cf55156ff76cc60e7cbc0"},
-    {file = "bomiot_token-0.7.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1c86d2f36b25739225cbb87f6cf213c92e49910d8541168f1da5c9d357d3bd82"},
-    {file = "bomiot_token-0.7.4-cp39-cp39-win_amd64.whl", hash = "sha256:88c26360b8a3290e8403d9fae50676cbebf7a27dd7a19d820e7c9edf2e9204db"},
+    {file = "bomiot_token-0.7.6-cp310-cp310-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:6ef2c74f71892b6def64063a3d8608a794f838c9cea629db6a17bb1a56371ecf"},
+    {file = "bomiot_token-0.7.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:58702741205c33b80752c6ad6941a2e73fbdb97659b87ab40c1be5b3d537008f"},
+    {file = "bomiot_token-0.7.6-cp310-cp310-win_amd64.whl", hash = "sha256:8ec5c680dc4daa72dc851b7b2ddf2b61d55be3397314d1c6c3582de3146585f2"},
+    {file = "bomiot_token-0.7.6-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:ebf98dbf7d99ef306987843210cc23b9c3a7e8cbb61d35f98a8212b00ce7b39a"},
+    {file = "bomiot_token-0.7.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:79c0fc440f8ba67a388d05d7d7f6c9eac78bb6bc0fc1fc0ed91730fbcb5e65de"},
+    {file = "bomiot_token-0.7.6-cp311-cp311-win_amd64.whl", hash = "sha256:e961958e8db9abca5f75e548634030d2d5545d7d5caec1458a511e6d99611132"},
+    {file = "bomiot_token-0.7.6-cp312-cp312-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:3fce41347fe27de7af2d01cfd07befa46562e2f3afe013646796b7a30a89b2a2"},
+    {file = "bomiot_token-0.7.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb1385916a149eb5305acc678ba9e6c9a4bcddfbf05ab85480226c52b09c9b90"},
+    {file = "bomiot_token-0.7.6-cp312-cp312-win_amd64.whl", hash = "sha256:10e11326f0958792c18d48f885fc6562767aab44398baef2f88d4682e7d4ddaf"},
+    {file = "bomiot_token-0.7.6-cp313-cp313-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:ff62cc9c97ef73c5a830a47140a3a2aa13f7efb7b25d2d959c9acd138c2e6c8e"},
+    {file = "bomiot_token-0.7.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:112aa4f0143928eed6f5762caacd730873264e6e71d2665aa9324155ef5495bd"},
+    {file = "bomiot_token-0.7.6-cp313-cp313-win_amd64.whl", hash = "sha256:a1142df14b07c207c791319a55e5f7dd8b74ab73cf4635667540c4dcb6b99e46"},
+    {file = "bomiot_token-0.7.6-cp39-cp39-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:337fa1fb0af0eeb44521f453f274ed57034877230294d538163d462c5e1cb71c"},
+    {file = "bomiot_token-0.7.6-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b834257eda193c87c2604954175be7e9413b95ffe166d6a233a9ce53e745de67"},
+    {file = "bomiot_token-0.7.6-cp39-cp39-win_amd64.whl", hash = "sha256:e975f4f0cc2b372bd31e6b601b7c847900afa1cdbaade79c74477186a55aa6b6"},
 ]
 
 [[package]]
@@ -1316,13 +1316,13 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pytz"
-version = "2026.2"
+version = "2026.3.post1"
 description = "World timezone definitions, modern and historical"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pytz-2026.2-py2.py3-none-any.whl", hash = "sha256:04156e608bee23d3792fd45c94ae47fae1036688e75032eea2e3bf0323d1f126"},
-    {file = "pytz-2026.2.tar.gz", hash = "sha256:0e60b47b29f21574376f218fe21abc009894a2321ea16c6754f3cad6eb7cdd6a"},
+    {file = "pytz-2026.3.post1-py2.py3-none-any.whl", hash = "sha256:dd95840dd199baea12d9cc096a1d452caa6596a1c1e4b5f3dbd1541855d5e815"},
+    {file = "pytz-2026.3.post1.tar.gz", hash = "sha256:2211d3fcf9a797d3405cac96ac7f61d80e6a644f72a3309607282fe8a2010c5d"},
 ]
 
 [[package]]
@@ -1933,4 +1933,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<=3.13"
-content-hash = "22a6c7f4cc68515408e4ba9b13443033b65930b9d6b95775359e1787734f0923"
+content-hash = "c010ea46e599b9c6caf1c29bc094636cb748eabbb7ba58f07b3c5bfefc4a6d8f"

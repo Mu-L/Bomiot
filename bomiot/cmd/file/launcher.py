@@ -6,6 +6,7 @@ import socket
 import webbrowser
 import threading
 from os.path import join, exists
+from bomiot_token import encrypt_info
 from os import getcwd
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -14,7 +15,6 @@ import requests
 app_name = "GreaterWMS"
 version = "3.0.0"
 port = 8008
-workers = 1
 
 if __name__ == "__main__":
     # Welcome page
@@ -76,6 +76,18 @@ if __name__ == "__main__":
 
     django.setup()
 
+    auth_key_path = Path(join(os.path.dirname(sys.executable), 'auth_key.py'))
+    if auth_key_path.exists():
+        auth_key_path.unlink()
+    while True:
+        key_code = encrypt_info()
+        if '/' in key_code:
+            continue
+        else:
+            break
+    with open(auth_key_path, "w", encoding="utf-8") as f:
+        f.write(f'KEY = "{key_code}"\n')
+
     from django.core.management import call_command
     from django.apps import apps
     from django.contrib.auth import get_user_model
@@ -105,6 +117,25 @@ if __name__ == "__main__":
         print(f"Error creating migrations: {e}")
 
     # Execute migrate command
+    try:
+        call_command('migrate')
+    except Exception as e:
+        print(f"Error during migration: {e}")
+
+    for app_config in apps.get_app_configs():
+        try:
+            app_config.ready()
+        except Exception:
+            pass
+
+    # Execute makemigrations command again
+    try:
+        call_command(*cmd_args)
+        print("Migrations created successfully.")
+    except Exception as e:
+        print(f"Error creating migrations: {e}")
+
+    # Execute migrate command again
     try:
         call_command('migrate')
     except Exception as e:
@@ -149,7 +180,7 @@ if __name__ == "__main__":
         "bomiot_asgi:application",
         host='0.0.0.0',
         port=port,
-        workers=workers,
+        workers=1,
         log_level="info",
         uds=None,
         ssl_keyfile=None,

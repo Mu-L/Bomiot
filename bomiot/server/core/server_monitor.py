@@ -96,6 +96,18 @@ class ServerManager:
                     percent=float(f'{disk_usage.percent:.2f}')
                 )
                 disk_list.append(disk_detail)
+                bomiot_signals.send(sender=Disk, msg={
+                    'models': 'Disk',
+                    'type': 'created',
+                    'data': {
+                        "device": partitions[i].device,
+                        "mountpoint": partitions[i].mountpoint,
+                        "total": int(disk_usage.total),
+                        "used": int(disk_usage.used),
+                        "free": int(disk_usage.free),
+                        "percent": float(f'{disk_usage.percent:.2f}')
+                    }
+                })
             except PermissionError:
                 print(f"{partitions[i].mountpoint}")
                 continue
@@ -110,10 +122,19 @@ class ServerManager:
         newtork_info_check = Network.objects.filter()
         if newtork_info_check.count() >= 10080:
             newtork_info_check.order_by('id').first().delete()
-        Network.objects.create(
-                       bytes_sent=int(bytes_sent),
-                       bytes_recv=int(bytes_recv)
-                       )
+        network_data = Network.objects.create(
+                                           bytes_sent=int(bytes_sent),
+                                           bytes_recv=int(bytes_recv)
+                                           )
+        bomiot_signals.send(sender=Network, msg={
+            'models': 'Network',
+            'type': 'created',
+            'data': {
+                'id': network_data.id,
+                "bytes_sent": int(bytes_sent),
+                "bytes_recv": int(bytes_recv)
+            }
+        })
 
     def get_pid(self):
         """PIDs"""
@@ -142,13 +163,25 @@ class ServerManager:
                 pid_add = Pids(**item)
                 pid_add_list.append(pid_add)
                 data_list.append(item)
+                bomiot_signals.send(sender=Pids, msg={
+                    'models': 'Pids',
+                    'type': 'created',
+                    'data': {
+                        'pid': int(pid),
+                        'name': str(name),
+                        'memory': int(mem_rss),
+                        'create_time': datetime.fromtimestamp(create_time),
+                        'memory_usage': round(float(mem_percent), 2),
+                        'cpu_usage': round(float(cpu_percent), 2)
+                    }
+                })
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
         Pids.objects.bulk_create(pid_add_list, batch_size=200)  # Bulk create PIDs to improve performance
 
     def monitor_server(self):
         """Monitor server status"""
-        # 等待数据库迁移完成
+        # Wait for database migrations to complete
         for _ in range(30):
             try:
                 from django.db import connection

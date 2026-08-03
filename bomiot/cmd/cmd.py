@@ -284,6 +284,12 @@ def cmd():
         from pathlib import Path
         from configparser import ConfigParser
         WORKING_SPACE = os.path.join(os.getcwd())
+        # Run discovered_apps.py main() to scan and emit apps.json
+        from bomiot.cmd.file.discovered_apps import main as _discover_apps_main
+        _orig_argv = sys.argv
+        sys.argv = [sys.argv[0]]
+        _discover_apps_main(WORKING_SPACE)
+        sys.argv = _orig_argv
         if platform.system() == 'Windows':
             from bomiot.cmd.killport import kill_process_on_port
             kill_process_on_port(args.port)

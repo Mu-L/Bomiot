@@ -55,6 +55,7 @@ def create_file(folder: str = ''):
             ('.gitignore', '.gitignore'),
             ('LICENSE', 'LICENSE'),
             ('launcher.py', 'launcher.py'),
+            ('discovered_apps.py', 'discovered_apps.py'),
             ('logo.icns', 'logo.icns'),
             ('logo.png', 'logo.png'),
             ('logo.ico', 'logo.ico'),

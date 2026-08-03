@@ -69,7 +69,7 @@ _SKIP_URL_APPS = frozenset({
 
 # Prefixes of project-local apps we want to auto-mount URLs for.
 # (Matches the INSTALLED_APPS discovery source of truth: BASE bomiot.server.core
-#  + runtime_discover_bomiot_apps discovered greaterwms.* packages.)
+#  + greaterwms.* packages loaded from WORKING_SPACE/apps.json.)
 _APP_PREFIXES = ('bomiot.', 'greaterwms.')
 
 _mounted_prefixes = set()

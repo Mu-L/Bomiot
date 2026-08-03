@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 def create_project_apps_py(path, app, name):
     with open(path, "w") as f:
@@ -18,15 +18,18 @@ def create_project_apps_py(path, app, name):
         f.write("        from bomiot.server.core.models import JobList\n")
         f.write("        import json\n")
         f.write("\n")
-        f.write("        JobList.objects.get_or_create(\n")
-        f.write(f"            job_id='example_job',\n")
-        f.write("            defaults={\n")
-        f.write(f"                'module_name': 'greaterwms.task',\n")
-        f.write("                'func_name': 'example_job',\n")
-        f.write("                'trigger': 'interval',\n")
-        f.write("                'configuration': json.dumps({'minutes': 1}),\n")
-        f.write("                'description': 'Example scheduled task - Executed once every 1 minute',\n")
-        f.write("                'type': True,\n")
-        f.write("            }\n")
-        f.write("        )\n")
+        f.write("        try:\n")
+        f.write("            JobList.objects.get_or_create(\n")
+        f.write(f"                job_id='example_job',\n")
+        f.write("                defaults={\n")
+        f.write(f"                    'module_name': 'greaterwms.task',\n")
+        f.write("                    'func_name': 'example_job',\n")
+        f.write("                    'trigger': 'interval',\n")
+        f.write("                    'configuration': json.dumps({'minutes': 1}),\n")
+        f.write("                    'description': 'Example scheduled task - Executed once every 1 minute',\n")
+        f.write("                    'type': True,\n")
+        f.write("                }\n")
+        f.write("            )\n")
+        f.write("        except:\n")
+        f.write("            pass\n")
     f.close()

@@ -47,3 +47,4 @@ ci-logs/
 /*.swo
 /*.log
 /testing/
+apps.json
