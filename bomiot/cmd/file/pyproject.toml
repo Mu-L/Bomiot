@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "bomiot"
-version = "1.2.0"
+version = "1.2.2"
 description = "Ultra Enterprise Application System"
 authors = ["Bomiot <Singosgu@gmail.com>"]
 readme = "README.md"
-homepage = "https://github.com/Bomiot/Bomiot"
+homepage = "https://www.bomiot.com"
 repository = "https://github.com/Bomiot/Bomiot"
 keywords = ["Bomiot", "bomiot", "GreaterWMS", "greaterwms"]
 include = [
@@ -32,8 +32,9 @@ django-cors-headers = "~4.4.0"
 pyjwt = ">=2.10.1"
 django-filter = "~24.3"
 djangorestframework-csv = "~3.0.2"
-bomiot-asgi = ">=0.5.20"
+bomiot-asgi = ">=0.5.45"
 bomiot-message = ">=0.4.5"
+bomiot-token = ">=0.7.6"
 orjson = "~3.10.7"
 djangorestframework = "~3.15.2"
 django-apscheduler = "~0.7.0"

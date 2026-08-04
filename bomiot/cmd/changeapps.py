@@ -1,4 +1,5 @@
-import os
+import os, sys
+from pathlib import Path
 
 def create_project_apps_py(path, app, name):
     with open(path, "w") as f:
@@ -33,3 +34,8 @@ def create_project_apps_py(path, app, name):
         f.write("        except:\n")
         f.write("            pass\n")
     f.close()
+    from bomiot.cmd.file.discovered_apps import main as _discover_apps_main
+    _orig_argv = sys.argv
+    sys.argv = [sys.argv[0]]
+    _discover_apps_main(str(Path(path).parent.parent.parent))
+    sys.argv = _orig_argv
