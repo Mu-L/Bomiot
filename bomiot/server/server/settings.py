@@ -32,7 +32,7 @@ PROJECT_NAME = 'greaterwms'
 
 SECRET_KEY = get_random_secret_key()
 
-DEBUG = True
+DEBUG = CONFIG.getboolean('debug', 'debug', fallback=True)
 
 ALLOWED_HOSTS = ['*', '127.0.0.1', 'localhost']
 AUTH_USER_MODEL = "core.User"

@@ -23,6 +23,7 @@ notice.*
 asgi.py
 /.history
 auth_key.py
+commercial.py
 *.egg
 *.egg-info
 *.whl
@@ -48,3 +49,4 @@ ci-logs/
 /*.log
 /testing/
 apps.json
+bomiot_ready.lock

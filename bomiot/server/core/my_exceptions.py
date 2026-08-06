@@ -1,12 +1,13 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from django.db import DatabaseError
+from rest_framework import status
 
 
 def custom_exception_handler(exc, context):
     """
     custom exception handler for DRF
-    :param exc: exception 
+    :param exc: exception
     :param context: context information
     :return: Response
     """
@@ -14,9 +15,11 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if response is not None:
-        # add additional information to the response
-        response.data['status_code'] = response.status_code
-        response = Response(response.data)
+        if isinstance(response.data, dict) and 'login' in response.data:
+            response = Response(response.data, status=status.HTTP_200_OK)
+        else:
+            response.data['status_code'] = response.status_code
+            response = Response(response.data, status=response.status_code)
     else:
         # handle the exception
         print(exc, DatabaseError)
